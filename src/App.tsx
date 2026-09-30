@@ -10,6 +10,8 @@ import { CatalogueView } from './views/CatalogueView.tsx';
 import { ComponentDetailView } from './views/ComponentDetailView.tsx';
 import { GettingStartedView } from './views/GettingStartedView.tsx';
 import { ReferenceComparisonView } from './views/ReferenceComparisonView.tsx';
+import { DesignTokensView } from './views/DesignTokensView.tsx';
+import { AccountView } from './views/AccountView.tsx';
 import { AdminView } from './views/AdminView.tsx';
 
 export default function App() {
@@ -116,6 +118,12 @@ function MainAppContent() {
 
         {currentRoute === 'comparison' && <ReferenceComparisonView />}
 
+        {currentRoute === 'tokens' && <DesignTokensView />}
+
+        {currentRoute === 'account' && (
+          <AccountView onOpenLoginModal={() => setIsLoginOpen(true)} />
+        )}
+
         {currentRoute.startsWith('admin') && (
           <AdminView onOpenLoginModal={() => setIsLoginOpen(true)} />
         )}
@@ -142,10 +150,24 @@ function MainAppContent() {
             </button>
             <button
               type="button"
+              onClick={() => navigateTo('tokens')}
+              className="hover:text-slate-900 transition-colors cursor-pointer"
+            >
+              Tokens
+            </button>
+            <button
+              type="button"
               onClick={() => navigateTo('comparison')}
               className="hover:text-slate-900 transition-colors cursor-pointer"
             >
               Audit
+            </button>
+            <button
+              type="button"
+              onClick={() => navigateTo('account')}
+              className="hover:text-slate-900 transition-colors cursor-pointer"
+            >
+              Account
             </button>
             <button
               type="button"

@@ -12,6 +12,7 @@ import { Badge } from '../../packages/ui/Badge.tsx';
 import { Tabs } from '../../packages/ui/Tabs.tsx';
 import { Breadcrumbs } from '../../packages/ui/Breadcrumbs.tsx';
 import { ComponentPreviewRenderer } from '../components/catalogue/ComponentPreviewRenderer.tsx';
+import { CodeViewer } from '../components/common/CodeViewer.tsx';
 import {
   Copy,
   Check,
@@ -28,6 +29,7 @@ import {
   Maximize2,
   Layers,
   ArrowRight,
+  Grid,
 } from 'lucide-react';
 
 interface ComponentDetailViewProps {
@@ -386,31 +388,12 @@ export function ComponentDetailView({
                   Fetching authorized source code from server...
                 </div>
               ) : (
-                <div className="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden text-slate-100 shadow-md">
-                  <div className="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800 text-xs">
-                    <div className="flex items-center gap-2 font-mono text-slate-400">
-                      <span>{sourceData.mainFile.path}</span>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => copyToClipboard(sourceData.mainFile.content, 'source')}
-                      className="text-slate-300 hover:text-white hover:bg-slate-800 h-7 text-xs"
-                      leftIcon={
-                        copiedState === 'source' ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-400" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )
-                      }
-                    >
-                      {copiedState === 'source' ? 'Copied!' : 'Copy Code'}
-                    </Button>
-                  </div>
-                  <pre className="p-4 overflow-x-auto text-xs font-mono leading-relaxed text-slate-200 max-h-[500px]">
-                    <code>{sourceData.mainFile.content}</code>
-                  </pre>
-                </div>
+                <CodeViewer
+                  code={sourceData.mainFile.content}
+                  filename={sourceData.mainFile.path}
+                  language="tsx"
+                  dependencies={sourceData.dependencies}
+                />
               )}
             </div>
           )}
@@ -431,8 +414,13 @@ export function ComponentDetailView({
                   </ul>
                 </div>
 
-                <div className="rounded-lg bg-slate-900 text-slate-100 p-4 font-mono text-xs overflow-x-auto">
-                  <pre>{component.usageDocumentation}</pre>
+                <div className="space-y-2">
+                  <span className="text-xs font-semibold text-slate-700 block">Complete Usage Example</span>
+                  <CodeViewer
+                    code={component.usageDocumentation.replace(/^###[^\n]+\n+```tsx\n?/, '').replace(/\n?```$/, '')}
+                    filename="Example.tsx"
+                    language="tsx"
+                  />
                 </div>
               </div>
             </div>
@@ -484,49 +472,46 @@ export function ComponentDetailView({
 
           {/* TAB 5: INSTALL */}
           {activeTab === 'install' && (
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div className="p-6 rounded-xl border border-slate-200 bg-white space-y-4">
-                <h3 className="text-base font-semibold text-slate-900">CLI Installation</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-base font-semibold text-slate-900">Official CLI Installation</h3>
+                  <span className="text-xs text-indigo-600 font-semibold">Recommended</span>
+                </div>
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  Run the official Tech Inject CLI from your terminal inside any React + TypeScript project. The command automatically validates dependencies, verifies path boundaries, and writes the component files into your components directory.
+                  The Tech Inject CLI writes components directly into your application directory, automatically installing required design tokens into <code>src/theme/tokens.ts</code>.
                 </p>
 
-                <div className="p-3.5 bg-slate-900 text-slate-100 rounded-lg flex items-center justify-between gap-3 text-xs font-mono shadow-sm">
-                  <span className="truncate">
-                    npx @tech-inject/cli add {component.slug}
-                    {isPremium ? ' --token <your_pro_token>' : ''}
-                  </span>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={() =>
-                      copyToClipboard(
-                        `npx @tech-inject/cli add ${component.slug}${isPremium ? ' --token <your_pro_token>' : ''}`,
-                        'install'
-                      )
-                    }
-                    className="text-slate-300 hover:text-white hover:bg-slate-800 h-7 text-xs shrink-0"
-                    leftIcon={
-                      copiedState === 'install' ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )
-                    }
-                  >
-                    {copiedState === 'install' ? 'Copied!' : 'Copy'}
-                  </Button>
-                </div>
+                <CodeViewer
+                  code={`npx @tech-inject/cli add ${component.slug}${isPremium ? ` --token ${user?.isPremium ? 'tech_inject_sec_' + user.id : '<your_pro_token>'}` : ''}`}
+                  filename="terminal"
+                  language="bash"
+                  showLineNumbers={false}
+                />
 
                 {isPremium && (
                   <div className="p-3 bg-purple-50 border border-purple-200 rounded-lg text-xs text-purple-900 flex items-start gap-2">
                     <Sparkles className="w-4 h-4 text-purple-600 shrink-0 mt-0.5" />
                     <div>
-                      <strong className="block font-semibold">Premium Component Authentication</strong>
-                      To install this component via CLI, copy your active access token from your Account settings and pass it with <code>--token</code>.
+                      <strong className="block font-semibold">Pro Component Authentication</strong>
+                      To install this component via CLI, copy your active token from your Account settings and pass it with <code>--token</code>.
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Package Managers alternatives */}
+              <div className="p-6 rounded-xl border border-slate-200 bg-white space-y-4">
+                <h3 className="text-base font-semibold text-slate-900">Peer Dependencies</h3>
+                <p className="text-xs text-slate-600">
+                  If installing manually, install required peer icons and runtime helpers:
+                </p>
+                <CodeViewer
+                  code={`npm install lucide-react@^0.546.0\n# or\npnpm add lucide-react@^0.546.0\n# or\nbun add lucide-react@^0.546.0`}
+                  filename="install-dependencies.sh"
+                  language="bash"
+                  showLineNumbers={false}
+                />
               </div>
             </div>
           )}
@@ -556,34 +541,24 @@ export function ComponentDetailView({
                   Generating AI Agent integration prompt...
                 </div>
               ) : (
-                <div className="rounded-xl border border-slate-200 bg-white overflow-hidden shadow-xs">
-                  <div className="flex items-center justify-between p-4 border-b border-slate-100 bg-slate-50/70">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="text-sm font-semibold text-slate-900">
+                      <h4 className="text-base font-semibold text-slate-900">
                         Agent Prompt: {component.name}
                       </h4>
                       <p className="text-xs text-slate-500">
-                        Paste this structured prompt directly into your AI coding assistant (Cursor, Claude, Copilot).
+                        Paste this structured prompt into Cursor, Claude Code, Windsurf, or GitHub Copilot.
                       </p>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="primary"
-                      onClick={() => copyToClipboard(aiPrompt, 'prompt')}
-                      leftIcon={
-                        copiedState === 'prompt' ? (
-                          <Check className="w-3.5 h-3.5" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )
-                      }
-                    >
-                      {copiedState === 'prompt' ? 'Copied Prompt' : 'Copy AI Prompt'}
-                    </Button>
                   </div>
-                  <pre className="p-5 text-xs text-slate-800 font-mono leading-relaxed bg-slate-50/30 overflow-x-auto whitespace-pre-wrap max-h-[500px]">
-                    {aiPrompt}
-                  </pre>
+
+                  <CodeViewer
+                    code={aiPrompt}
+                    filename="agent-prompt.md"
+                    language="markdown"
+                    maxHeight="480px"
+                  />
                 </div>
               )}
             </div>

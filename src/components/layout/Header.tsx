@@ -56,12 +56,21 @@ export function Header({
           </button>
           <button
             type="button"
+            onClick={() => onNavigate('tokens')}
+            className={`transition-colors cursor-pointer ${
+              currentRoute === 'tokens' ? 'text-indigo-600 font-semibold' : 'hover:text-slate-900'
+            }`}
+          >
+            Tokens
+          </button>
+          <button
+            type="button"
             onClick={() => onNavigate('comparison')}
             className={`transition-colors cursor-pointer ${
               currentRoute === 'comparison' ? 'text-indigo-600 font-semibold' : 'hover:text-slate-900'
             }`}
           >
-            Reference Comparison
+            Comparison
           </button>
           <button
             type="button"

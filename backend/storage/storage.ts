@@ -25,13 +25,55 @@ export function validateSafeFilePath(filePath: string): boolean {
 }
 
 export function readThemeTokensBundle(): { path: string; content: string } {
-  const tokenFile = path.resolve(process.cwd(), 'packages/theme/tokens/index.ts');
-  let content = '';
-  if (fs.existsSync(tokenFile)) {
-    content = fs.readFileSync(tokenFile, 'utf-8');
-  } else {
-    content = '// Tech Inject Theme Tokens\nexport const tokens = {};';
-  }
+  const content = `// Tech Inject Canonical Theme Tokens
+export const tokens = {
+  colors: {
+    brand: {
+      50: '#EEF2FF',
+      100: '#E0E7FF',
+      500: '#6366F1',
+      600: '#4F46E5', // Primary brand action
+      700: '#4338CA',
+      900: '#312E81',
+    },
+    slate: {
+      50: '#F8FAFC',
+      100: '#F1F5F9',
+      200: '#E2E8F0',
+      300: '#CBD5E1',
+      400: '#94A3B8',
+      500: '#64748B',
+      600: '#475569',
+      700: '#334155',
+      800: '#1E293B',
+      900: '#0F172A',
+    },
+    white: '#FFFFFF',
+    black: '#000000',
+  },
+  typography: {
+    fonts: {
+      display: '"Plus Jakarta Sans", sans-serif',
+      body: '"Plus Jakarta Sans", sans-serif',
+      mono: '"JetBrains Mono", monospace',
+    },
+  },
+  heights: {
+    control: { sm: '2rem', md: '2.375rem', lg: '2.75rem' },
+  },
+  radii: {
+    sm: '4px',
+    md: '6px',
+    lg: '8px',
+    full: '9999px',
+  },
+  focus: {
+    ring: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-600/30',
+  },
+} as const;
+
+export type ThemeTokens = typeof tokens;
+`;
 
   return {
     path: 'theme/tokens.ts',

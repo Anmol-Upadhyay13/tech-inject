@@ -67,6 +67,21 @@ export function AdminView({ onOpenLoginModal }: { onOpenLoginModal: () => void }
   const [customerModalUser, setCustomerModalUser] = useState<User | null>(null);
   const [customerModalAction, setCustomerModalAction] = useState<'grant' | 'revoke'>('grant');
 
+  // Search filters
+  const [compSearch, setCompSearch] = useState('');
+  const [customerSearch, setCustomerSearch] = useState('');
+
+  const exportAuditLogs = () => {
+    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(auditLogs, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute('href', dataStr);
+    downloadAnchor.setAttribute('download', `tech-inject-audit-logs-${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+    showToast('✔ Audit log exported to JSON file.');
+  };
+
   const loadAllData = async () => {
     if (!isAdmin) return;
     setIsLoading(true);
@@ -324,13 +339,23 @@ export function AdminView({ onOpenLoginModal }: { onOpenLoginModal: () => void }
       {/* TAB 2: COMPONENTS MANAGEMENT */}
       {activeTab === 'components' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-              Registered Components ({components.length})
-            </span>
-            <Button size="sm" variant="secondary" onClick={loadAllData}>
-              Refresh
-            </Button>
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="w-full sm:max-w-xs">
+              <Input
+                placeholder="Search components or slug..."
+                value={compSearch}
+                onChange={(e) => setCompSearch(e.target.value)}
+                size="sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-slate-500 font-mono">
+                Showing {components.filter(c => !compSearch || c.name.toLowerCase().includes(compSearch.toLowerCase()) || c.slug.toLowerCase().includes(compSearch.toLowerCase())).length} of {components.length}
+              </span>
+              <Button size="sm" variant="secondary" onClick={loadAllData}>
+                Refresh
+              </Button>
+            </div>
           </div>
 
           <div className="border border-slate-200 rounded-lg overflow-x-auto bg-white shadow-2xs">
@@ -347,7 +372,9 @@ export function AdminView({ onOpenLoginModal }: { onOpenLoginModal: () => void }
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {components.map((comp) => {
+                {components
+                  .filter((c) => !compSearch || c.name.toLowerCase().includes(compSearch.toLowerCase()) || c.slug.toLowerCase().includes(compSearch.toLowerCase()))
+                  .map((comp) => {
                   const isPub = comp.status === 'published';
                   return (
                     <tr key={comp.id} className="hover:bg-slate-50/70 transition-colors">
@@ -430,16 +457,25 @@ export function AdminView({ onOpenLoginModal }: { onOpenLoginModal: () => void }
       {/* TAB 3: CUSTOMERS & PREMIUM ACCESS */}
       {activeTab === 'customers' && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div>
               <h3 className="text-sm font-bold text-slate-900">Customer Access Management</h3>
               <p className="text-xs text-slate-500">
-                Grant or revoke Premium subscriptions. Revoking premium takes effect immediately on all subsequent source, install, and preview requests.
+                Grant or revoke Premium subscriptions with immediate database effect.
               </p>
             </div>
-            <Button size="sm" variant="secondary" onClick={loadAllData}>
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <Input
+                placeholder="Search email or name..."
+                value={customerSearch}
+                onChange={(e) => setCustomerSearch(e.target.value)}
+                size="sm"
+                className="w-48"
+              />
+              <Button size="sm" variant="secondary" onClick={loadAllData}>
+                Refresh
+              </Button>
+            </div>
           </div>
 
           <div className="border border-slate-200 rounded-lg overflow-x-auto bg-white shadow-2xs">
@@ -455,7 +491,9 @@ export function AdminView({ onOpenLoginModal }: { onOpenLoginModal: () => void }
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
-                {customers.map((c) => (
+                {customers
+                  .filter((c) => !customerSearch || c.name.toLowerCase().includes(customerSearch.toLowerCase()) || c.email.toLowerCase().includes(customerSearch.toLowerCase()))
+                  .map((c) => (
                   <tr key={c.id} className="hover:bg-slate-50/70">
                     <td className="py-3 px-4 font-semibold text-slate-900">{c.name}</td>
                     <td className="py-3 px-4 font-mono text-slate-500">{c.email}</td>
@@ -513,10 +551,18 @@ export function AdminView({ onOpenLoginModal }: { onOpenLoginModal: () => void }
       {activeTab === 'audit' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-900">Security & Publishing Audit Trail</h3>
-            <Button size="sm" variant="secondary" onClick={loadAllData}>
-              Refresh Logs
-            </Button>
+            <div>
+              <h3 className="text-sm font-bold text-slate-900">Security & Publishing Audit Trail</h3>
+              <p className="text-xs text-slate-500">Immutable ledger of administrative actions and permissions.</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="sm" variant="outline" onClick={exportAuditLogs}>
+                Export JSON
+              </Button>
+              <Button size="sm" variant="secondary" onClick={loadAllData}>
+                Refresh Logs
+              </Button>
+            </div>
           </div>
 
           <div className="border border-slate-200 rounded-lg overflow-x-auto bg-white shadow-2xs">

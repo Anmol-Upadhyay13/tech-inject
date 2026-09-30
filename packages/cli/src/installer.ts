@@ -129,7 +129,7 @@ export async function runInstaller(options: CliOptions): Promise<InstallResult> 
 
   // 6. Install Theme Tokens if not present
   if (bundle.themeTokens && bundle.themeTokens.content) {
-    const themeDir = path.resolve(process.cwd(), 'src/theme');
+    const themeDir = path.resolve(destinationDir, '../theme');
     if (!fs.existsSync(themeDir)) {
       fs.mkdirSync(themeDir, { recursive: true });
     }
