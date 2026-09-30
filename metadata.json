@@ -1,0 +1,6 @@
+{
+  "name": "Tech Inject Design Library",
+  "description": "Production-ready developer-facing component library and design system with live previews, props inspection, CLI installer, and admin management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

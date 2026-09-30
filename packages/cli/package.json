@@ -1,0 +1,12 @@
+{
+  "name": "@tech-inject/cli",
+  "version": "1.0.0",
+  "description": "Tech Inject Design System CLI for seamless component installation into React + TypeScript projects",
+  "bin": {
+    "tech-inject": "./bin/tech-inject.js"
+  },
+  "type": "module",
+  "keywords": ["cli", "components", "react", "typescript", "design-system", "tailwind"],
+  "author": "Tech Inject Team",
+  "license": "MIT"
+}

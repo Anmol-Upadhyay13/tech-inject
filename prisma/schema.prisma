@@ -1,0 +1,90 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  passwordHash  String
+  name          String
+  role          String          @default("customer") // "customer" | "admin"
+  isPremium     Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+  lastLoginAt   DateTime?
+  premiumGrants PremiumAccess[] @relation("GrantedToUser")
+  adminGrants   PremiumAccess[] @relation("GrantedByAdmin")
+  auditLogs     AuditLog[]
+}
+
+model PremiumAccess {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation("GrantedToUser", fields: [userId], references: [id], onDelete: Cascade)
+  grantedBy String
+  admin     User      @relation("GrantedByAdmin", fields: [grantedBy], references: [id])
+  status    String    @default("active") // "active" | "revoked"
+  grantedAt DateTime  @default(now())
+  revokedAt DateTime?
+}
+
+model Component {
+  id                 String             @id @default(uuid())
+  name               String
+  slug               String             @unique
+  description        String
+  category           String
+  version            String             @default("1.0.0")
+  accessLevel        String             @default("free") // "free" | "premium"
+  status             String             @default("draft") // "draft" | "published" | "archived"
+  propsSchema        String             // JSON string
+  usageDocumentation String
+  dependencies       String             // JSON array string
+  previewData        String             // JSON configuration string
+  thumbnail          String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  publishedAt        DateTime?
+  versions           ComponentVersion[]
+  files              ComponentFile[]
+}
+
+model ComponentVersion {
+  id          String          @id @default(uuid())
+  componentId String
+  component   Component       @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  version     String
+  accessLevel String          @default("free")
+  changelog   String?
+  createdAt   DateTime        @default(now())
+  files       ComponentFile[]
+
+  @@unique([componentId, version])
+}
+
+model ComponentFile {
+  id          String            @id @default(uuid())
+  componentId String
+  component   Component         @relation(fields: [componentId], references: [id], onDelete: Cascade)
+  versionId   String?
+  version     ComponentVersion? @relation(fields: [versionId], references: [id], onDelete: Cascade)
+  path        String
+  content     String
+  isMain      Boolean           @default(false)
+  fileType    String            @default("tsx") // "tsx" | "ts" | "css" | "json"
+  createdAt   DateTime          @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  resource  String
+  details   String?  // JSON string
+  createdAt DateTime @default(now())
+}
